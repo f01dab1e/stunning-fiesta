@@ -87,23 +87,28 @@ pub mod ast {
 pub mod parse {
     use crate::ast::Expr;
 
-    fn char(input: &str) -> (char, &str) {
-        let ch = match input.chars().next() {
-            Some(c) => c,
-            None => panic!("unexpected eof"),
-        };
-
-        (ch, &input[ch.len_utf8()..])
+    trait Input {
+        fn expect(&self, pattern: impl Pattern) -> Self;
     }
 
-    fn expect_char(input: &str, ch: char) -> &str {
-        let (actual, input) = char(input);
-
-        if actual != ch {
-            panic!("expected {ch}");
+    impl Input for &str {
+        fn expect(&self, pattern: impl Pattern) -> Self {
+            pattern.check(self)
         }
+    }
 
-        input
+    trait Pattern {
+        fn check(self, input: &str) -> &str;
+    }
+
+    impl Pattern for char {
+        fn check(self, input: &str) -> &str {
+            if let Some(input) = input.strip_prefix(self) {
+                return input;
+            }
+
+            panic!("expected {self}");
+        }
     }
 
     pub trait Parse: Sized {
@@ -118,9 +123,9 @@ pub mod parse {
 
     impl<T: Parse> Parse for Vec<T> {
         fn parse(input: &str) -> (Self, &str) {
-            let input = expect_char(input, '[');
+            let input = input.expect('[');
             let xs = Vec::new();
-            let input = expect_char(input, ']');
+            let input = input.expect(']');
             (xs, input)
         }
     }
