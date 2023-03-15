@@ -11,13 +11,16 @@ pub mod table {
         key: NonZeroU32,
     }
 
+    impl RawKey {
+        pub const MAX: u32 = 0xFFFF_FF00;
+    }
+
     impl Key for RawKey {
         fn from_usize(key: usize) -> Self {
-            let key = key.try_into().unwrap();
-            assert_ne!(key, u32::MAX);
+            assert!(key < (Self::MAX as usize));
 
             RawKey {
-                key: unsafe { NonZeroU32::new_unchecked(key) },
+                key: unsafe { NonZeroU32::new_unchecked(key as u32 + 1) },
             }
         }
 
