@@ -1,22 +1,28 @@
-use parse::Parse;
-
-use crate::ast::Expr;
-
 pub mod table {
-    use std::marker::PhantomData;
+    use std::{marker::PhantomData, num::NonZeroU32};
 
     pub trait Key {
         fn from_usize(key: usize) -> Self;
         fn as_usize(&self) -> usize;
     }
 
-    impl Key for usize {
+    #[derive(Debug)]
+    pub struct RawKey {
+        key: NonZeroU32,
+    }
+
+    impl Key for RawKey {
         fn from_usize(key: usize) -> Self {
-            key
+            let key = key.try_into().unwrap();
+            assert_ne!(key, u32::MAX);
+
+            RawKey {
+                key: unsafe { NonZeroU32::new_unchecked(key) },
+            }
         }
 
         fn as_usize(&self) -> usize {
-            *self
+            self.key.get() as usize - 1
         }
     }
 
@@ -48,7 +54,9 @@ pub mod table {
 }
 
 pub mod ast {
-    pub type Expr = usize;
+    use crate::table::RawKey;
+
+    pub type Expr = RawKey;
 
     pub struct Span {
         pub lo: u32,
@@ -110,6 +118,9 @@ pub mod parse {
 }
 
 fn main() {
+    use crate::ast::Expr;
+    use crate::parse::Parse as _;
+
     let xs = <Vec<Expr>>::parse("[]");
     dbg!(xs);
 }
