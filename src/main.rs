@@ -34,7 +34,7 @@ pub mod table {
         marker: PhantomData<K>,
     }
 
-    impl<K: Default, V: Default> Default for AllocTable<K, V> {
+    impl<K, V> Default for AllocTable<K, V> {
         fn default() -> Self {
             Self {
                 values: <_>::default(),
@@ -72,14 +72,21 @@ pub mod ast {
     }
 
     pub enum Literal {
+        /// `42`, `69`, etc
         Integer(u64),
-        Float(u64), // We convert float values into bits and that's how we don't need to deal with f32 and f64.
+        /// `integer-part.fractional-part`
+        /// We convert float values into bits and that's how we don't need to deal with f32 and f64
+        Float(u64),
+        /// `true`, `false`
         Boolean(bool),
+        /// `[]` or `[a, b, ...]`
         List(Vec<Expr>),
     }
 
     pub enum ExprKind {
+        /// Literal.
         Literal(Literal),
+        /// `if condition { block } [else { block }]`
         If(Expr, Expr, Option<Expr>),
     }
 }
@@ -113,6 +120,21 @@ pub mod parse {
 
     pub trait Parse: Sized {
         fn parse(input: &str) -> (Self, &str);
+
+        fn parse_comma(mut input: &str, close: char) -> (Vec<Self>, &str) {
+            let mut items = Vec::new();
+
+            while !input.starts_with(close) {
+                let (item, rest) = Self::parse(input);
+
+                input = rest;
+                items.push(item);
+
+                input = input.expect(',');
+            }
+
+            (items, input)
+        }
     }
 
     impl Parse for Expr {
@@ -124,9 +146,9 @@ pub mod parse {
     impl<T: Parse> Parse for Vec<T> {
         fn parse(input: &str) -> (Self, &str) {
             let input = input.expect('[');
-            let xs = Vec::new();
+            let (items, input) = T::parse_comma(input, ']');
             let input = input.expect(']');
-            (xs, input)
+            (items, input)
         }
     }
 }
