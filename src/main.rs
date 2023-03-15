@@ -68,9 +68,15 @@ pub mod ast {
         pub span: Span,
     }
 
-    pub enum ExprKind {
+    pub enum Literal {
         Integer(u64),
-        List(Expr),
+        Float(u64), // We convert float values into bits and that's how we don't need to deal with f32 and f64.
+        Boolean(bool),
+        List(Vec<Expr>),
+    }
+
+    pub enum ExprKind {
+        Literal(Literal),
         If(Expr, Expr, Option<Expr>),
     }
 }
