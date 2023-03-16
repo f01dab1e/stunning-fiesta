@@ -9,8 +9,19 @@ impl<'a> Input<'a> {
         Self { text }
     }
 
+    fn skip_whitespace(mut self) -> Input<'a> {
+        loop {
+            let len = self.text.len();
+
+            self.text = self.text.trim_start();
+            if self.text.len() == len {
+                return self;
+            }
+        }
+    }
+
     fn expect(self, pattern: impl Pattern) -> Input<'a> {
-        pattern.check(self)
+        pattern.check(self.skip_whitespace())
     }
 
     fn parse<T: Parse>(self) -> (T, Input<'a>) {
@@ -42,9 +53,14 @@ pub trait Parse: Sized {
     fn parse_comma(mut input: Input, close: char) -> (Vec<Self>, Input) {
         let mut items = Vec::new();
 
-        while !input.text.starts_with(close) {
-            let (item, rest) = input.parse();
+        loop {
+            input = input.skip_whitespace();
 
+            if input.text.starts_with(close) {
+                break;
+            }
+
+            let (item, rest) = input.parse();
             input = rest;
             items.push(item);
 

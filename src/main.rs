@@ -6,7 +6,9 @@ fn main() {
     use crate::ast::Expr;
     use crate::parse::{Input, Parse as _};
 
-    let input = Input::of("[]");
-    let (items, _) = <Vec<Expr>>::parse(input);
+    let (items, _) = <Vec<Expr>>::parse(Input::of("[]"));
+    dbg!(items);
+
+    let (items, _) = <Vec<Expr>>::parse(Input::of(" [   ] "));
     dbg!(items);
 }
