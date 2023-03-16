@@ -4,8 +4,9 @@ pub mod table;
 
 fn main() {
     use crate::ast::Expr;
-    use crate::parse::Parse as _;
+    use crate::parse::{Input, Parse as _};
 
-    let xs = <Vec<Expr>>::parse("[]");
-    dbg!(xs);
+    let input = Input::of("[]");
+    let (items, _) = <Vec<Expr>>::parse(input);
+    dbg!(items);
 }

@@ -1,33 +1,35 @@
 use crate::ast::Expr;
 
-trait Input {
-    fn expect(&self, pattern: impl Pattern) -> &Self;
-    fn parse1<T: Parse>(&self) -> (T, &str);
-    fn parse_comma<T: Parse>(&self, close: char) -> (Vec<T>, &str);
+pub struct Input<'a> {
+    text: &'a str,
 }
 
-impl Input for str {
-    fn expect(&self, pattern: impl Pattern) -> &str {
+impl<'a> Input<'a> {
+    pub fn of(text: &'a str) -> Self {
+        Self { text }
+    }
+
+    fn expect(self, pattern: impl Pattern) -> Input<'a> {
         pattern.check(self)
     }
 
-    fn parse1<T: Parse>(&self) -> (T, &str) {
+    fn parse<T: Parse>(self) -> (T, Input<'a>) {
         T::parse(self)
     }
 
-    fn parse_comma<T: Parse>(&self, close: char) -> (Vec<T>, &str) {
+    fn parse_comma<T: Parse>(self, close: char) -> (Vec<T>, Input<'a>) {
         T::parse_comma(self, close)
     }
 }
 
 trait Pattern {
-    fn check(self, input: &str) -> &str;
+    fn check(self, input: Input) -> Input;
 }
 
 impl Pattern for char {
-    fn check(self, input: &str) -> &str {
-        if let Some(input) = input.strip_prefix(self) {
-            return input;
+    fn check(self, input: Input) -> Input {
+        if let Some(input) = input.text.strip_prefix(self) {
+            return Input::of(input);
         }
 
         panic!("expected {self}");
@@ -35,13 +37,13 @@ impl Pattern for char {
 }
 
 pub trait Parse: Sized {
-    fn parse(input: &str) -> (Self, &str);
+    fn parse(input: Input) -> (Self, Input);
 
-    fn parse_comma(mut input: &str, close: char) -> (Vec<Self>, &str) {
+    fn parse_comma(mut input: Input, close: char) -> (Vec<Self>, Input) {
         let mut items = Vec::new();
 
-        while !input.starts_with(close) {
-            let (item, rest) = input.parse1();
+        while !input.text.starts_with(close) {
+            let (item, rest) = input.parse();
 
             input = rest;
             items.push(item);
@@ -54,13 +56,13 @@ pub trait Parse: Sized {
 }
 
 impl Parse for Expr {
-    fn parse(_input: &str) -> (Self, &str) {
+    fn parse(_input: Input) -> (Self, Input) {
         todo!()
     }
 }
 
 impl<T: Parse> Parse for Vec<T> {
-    fn parse(input: &str) -> (Self, &str) {
+    fn parse(input: Input) -> (Self, Input) {
         let input = input.expect('[');
         let (items, input) = input.parse_comma(']');
         let input = input.expect(']');
