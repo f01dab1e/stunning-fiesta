@@ -11,4 +11,7 @@ fn main() {
 
     let (items, _) = <Vec<Expr>>::parse(Input::of(" [   ] "));
     dbg!(items);
+
+    let (items, _) = <Vec<Expr>>::parse(Input::of("--\n[]"));
+    dbg!(items);
 }

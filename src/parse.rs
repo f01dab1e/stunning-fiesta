@@ -9,11 +9,18 @@ impl<'a> Input<'a> {
         Self { text }
     }
 
-    fn skip_whitespace(mut self) -> Input<'a> {
+    fn skip_trivia(mut self) -> Input<'a> {
         loop {
             let len = self.text.len();
 
             self.text = self.text.trim_start();
+            if self.text.starts_with("--") {
+                self.text = self
+                    .text
+                    .find('\n')
+                    .map_or("", |index| &self.text[index + 1..]);
+            }
+
             if self.text.len() == len {
                 return self;
             }
@@ -21,7 +28,7 @@ impl<'a> Input<'a> {
     }
 
     fn expect(self, pattern: impl Pattern) -> Input<'a> {
-        pattern.check(self.skip_whitespace())
+        pattern.check(self.skip_trivia())
     }
 
     fn parse<T: Parse>(self) -> (T, Input<'a>) {
@@ -54,7 +61,7 @@ pub trait Parse: Sized {
         let mut items = Vec::new();
 
         loop {
-            input = input.skip_whitespace();
+            input = input.skip_trivia();
 
             if input.text.starts_with(close) {
                 break;
