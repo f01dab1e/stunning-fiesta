@@ -1,6 +1,9 @@
 use crate::table::RawKey;
 
-pub type Expr = RawKey;
+#[derive(Debug)]
+pub struct Expr {
+    pub raw: RawKey,
+}
 
 pub struct Span {
     pub lo: u32,
