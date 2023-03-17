@@ -28,7 +28,7 @@ impl Key for RawKey {
     }
 
     fn as_usize(&self) -> usize {
-        self.key.get() as usize - 1
+        (self.key.get() - 1) as usize
     }
 }
 
