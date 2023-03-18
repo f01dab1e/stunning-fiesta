@@ -7,12 +7,12 @@ fn main() {
     use crate::parse::{Input, Parse as _};
     use crate::table::AllocTable;
 
-    let (items, _) = <Vec<Expr>>::parse(Input::new("[]", &mut AllocTable::default()));
+    let items = <Vec<Expr>>::parse(&mut Input::new("[]", &mut AllocTable::default()));
     dbg!(items);
 
-    let (items, _) = <Vec<Expr>>::parse(Input::new(" [   ] ", &mut AllocTable::default()));
+    let items = <Vec<Expr>>::parse(&mut Input::new(" [   ] ", &mut AllocTable::default()));
     dbg!(items);
 
-    let (items, _) = <Vec<Expr>>::parse(Input::new("--\n[]", &mut AllocTable::default()));
+    let items = <Vec<Expr>>::parse(&mut Input::new("--\n[]", &mut AllocTable::default()));
     dbg!(items);
 }

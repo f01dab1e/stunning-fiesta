@@ -8,19 +8,19 @@ pub struct Input<'text, 'arena> {
     text: &'text str,
 }
 
-impl<'me, 'arena> Input<'me, 'arena> {
-    pub fn new(text: &'me str, tables: &'arena mut AllocTable<Expr, ExprData>) -> Self {
+impl<'text, 'arena> Input<'text, 'arena> {
+    pub fn new(text: &'text str, tables: &'arena mut AllocTable<Expr, ExprData>) -> Self {
         Self { tables, text }
     }
 
-    pub fn of(self, text: &'me str) -> Self {
+    pub fn of(self, text: &'text str) -> Self {
         Self {
             text,
             tables: self.tables,
         }
     }
 
-    fn skip_trivia(mut self) -> Self {
+    fn skip_trivia(&mut self) {
         loop {
             let len = self.text.len();
 
@@ -33,32 +33,33 @@ impl<'me, 'arena> Input<'me, 'arena> {
             }
 
             if self.text.len() == len {
-                return self;
+                break;
             }
         }
     }
 
-    fn expect(self, pattern: impl Pattern) -> Self {
-        pattern.check(self.skip_trivia())
+    fn expect(&mut self, pattern: impl Pattern) {
+        self.skip_trivia();
+        pattern.eat(self);
     }
 
-    fn parse<T: Parse>(self) -> (T, Self) {
+    fn parse<T: Parse>(&mut self) -> T {
         T::parse(self)
     }
 
-    fn parse_comma<T: Parse>(self, close: char) -> (Vec<T>, Self) {
+    fn parse_comma<T: Parse>(&mut self, close: char) -> Vec<T> {
         T::parse_comma(self, close)
     }
 }
 
 trait Pattern {
-    fn check<'text, 'arena>(self, input: Input<'text, 'arena>) -> Input<'text, 'arena>;
+    fn eat(self, input: &mut Input);
 }
 
 impl Pattern for char {
-    fn check<'text, 'arena>(self, input: Input<'text, 'arena>) -> Input<'text, 'arena> {
+    fn eat(self, mut input: &mut Input) {
         if let Some(rest) = input.text.strip_prefix(self) {
-            return input.of(rest);
+            input.text = rest;
         }
 
         panic!("expected {self}");
@@ -66,43 +67,39 @@ impl Pattern for char {
 }
 
 pub trait Parse: Sized {
-    fn parse<'text, 'arena>(input: Input<'text, 'arena>) -> (Self, Input<'text, 'arena>);
+    fn parse(input: &mut Input) -> Self;
 
-    fn parse_comma<'text, 'arena>(
-        mut input: Input<'text, 'arena>,
-        close: char,
-    ) -> (Vec<Self>, Input<'text, 'arena>) {
+    fn parse_comma(input: &mut Input, close: char) -> Vec<Self> {
         let mut items = Vec::new();
 
         loop {
-            input = input.skip_trivia();
+            input.skip_trivia();
 
             if input.text.starts_with(close) {
                 break;
             }
 
-            let (item, rest) = input.parse();
-            input = rest;
+            let item = input.parse();
             items.push(item);
 
-            input = input.expect(',');
+            input.expect(',');
         }
 
-        (items, input)
+        items
     }
 }
 
 impl Parse for Expr {
-    fn parse<'text, 'arena>(_input: Input<'text, 'arena>) -> (Self, Input<'text, 'arena>) {
+    fn parse(_input: &mut Input) -> Self {
         todo!()
     }
 }
 
 impl<T: Parse> Parse for Vec<T> {
-    fn parse<'text, 'arena>(input: Input<'text, 'arena>) -> (Self, Input<'text, 'arena>) {
-        let input = input.expect('[');
-        let (items, input) = input.parse_comma(']');
-        let input = input.expect(']');
-        (items, input)
+    fn parse(input: &mut Input) -> Self {
+        input.expect('[');
+        let items = input.parse_comma(']');
+        input.expect(']');
+        items
     }
 }
