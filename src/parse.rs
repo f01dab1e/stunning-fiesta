@@ -13,13 +13,6 @@ impl<'text, 'arena> Input<'text, 'arena> {
         Self { tables, text }
     }
 
-    pub fn of(self, text: &'text str) -> Self {
-        Self {
-            text,
-            tables: self.tables,
-        }
-    }
-
     fn skip_trivia(&mut self) {
         loop {
             let len = self.text.len();
