@@ -14,6 +14,7 @@ pub struct ExprData {
     pub span: Span,
 }
 
+#[allow(dead_code)]
 pub enum Literal {
     /// `42`, `69`, etc
     Integer(u64),
@@ -26,6 +27,7 @@ pub enum Literal {
     List(Vec<Expr>),
 }
 
+#[allow(dead_code)]
 pub enum ExprKind {
     /// Literal.
     Literal(Literal),

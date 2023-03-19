@@ -1,7 +1,7 @@
-pub mod ast;
-pub mod parse;
+mod ast;
+mod parse;
 mod span;
-pub mod table;
+mod table;
 
 fn main() {
     use crate::ast::Expr;

@@ -58,7 +58,7 @@ pub trait Parse: Sized {
         loop {
             input.skip_trivia();
 
-            if input.text.starts_with(close) {
+            if input.at(close) {
                 break;
             }
 
