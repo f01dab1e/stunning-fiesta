@@ -1,5 +1,6 @@
 pub mod ast;
 pub mod parse;
+mod span;
 pub mod table;
 
 fn main() {

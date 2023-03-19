@@ -1,13 +1,12 @@
-use crate::table::RawKey;
+use crate::{
+    parse::{Input, Parse},
+    span::Span,
+    table::RawKey,
+};
 
 #[derive(Debug)]
 pub struct Expr {
     pub raw: RawKey,
-}
-
-pub struct Span {
-    pub lo: u32,
-    pub hi: u32,
 }
 
 pub struct ExprData {
@@ -32,4 +31,19 @@ pub enum ExprKind {
     Literal(Literal),
     /// `if condition { block } [else { block }]`
     If(Expr, Expr, Option<Expr>),
+}
+
+impl Parse for Expr {
+    fn parse(_input: &mut Input) -> Self {
+        todo!()
+    }
+}
+
+impl<T: Parse> Parse for Vec<T> {
+    fn parse(input: &mut Input) -> Self {
+        input.expect('[');
+        let items = input.parse_comma(']');
+        input.expect(']');
+        items
+    }
 }

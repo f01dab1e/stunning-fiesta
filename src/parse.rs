@@ -4,8 +4,8 @@ use crate::{
 };
 
 pub struct Input<'text, 'arena> {
-    tables: &'arena mut AllocTable<Expr, ExprData>,
-    text: &'text str,
+    pub tables: &'arena mut AllocTable<Expr, ExprData>,
+    pub text: &'text str,
 }
 
 impl<'text, 'arena> Input<'text, 'arena> {
@@ -31,31 +31,21 @@ impl<'text, 'arena> Input<'text, 'arena> {
         }
     }
 
-    fn expect(&mut self, pattern: impl Pattern) {
+    pub fn at(&self, ch: char) -> bool {
+        self.text.chars().next() == ch.into()
+    }
+
+    pub fn expect(&mut self, pattern: impl Edible) {
         self.skip_trivia();
         pattern.eat(self);
     }
 
-    fn parse<T: Parse>(&mut self) -> T {
+    pub fn parse<T: Parse>(&mut self) -> T {
         T::parse(self)
     }
 
-    fn parse_comma<T: Parse>(&mut self, close: char) -> Vec<T> {
+    pub fn parse_comma<T: Parse>(&mut self, close: char) -> Vec<T> {
         T::parse_comma(self, close)
-    }
-}
-
-trait Pattern {
-    fn eat(self, input: &mut Input);
-}
-
-impl Pattern for char {
-    fn eat(self, mut input: &mut Input) {
-        if let Some(rest) = input.text.strip_prefix(self) {
-            input.text = rest;
-        }
-
-        panic!("expected {self}");
     }
 }
 
@@ -82,17 +72,16 @@ pub trait Parse: Sized {
     }
 }
 
-impl Parse for Expr {
-    fn parse(_input: &mut Input) -> Self {
-        todo!()
-    }
+pub trait Edible {
+    fn eat(self, input: &mut Input);
 }
 
-impl<T: Parse> Parse for Vec<T> {
-    fn parse(input: &mut Input) -> Self {
-        input.expect('[');
-        let items = input.parse_comma(']');
-        input.expect(']');
-        items
+impl Edible for char {
+    fn eat(self, mut input: &mut Input) {
+        if let Some(rest) = input.text.strip_prefix(self) {
+            input.text = rest;
+        }
+
+        panic!("expected {self}");
     }
 }
