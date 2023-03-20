@@ -63,9 +63,17 @@ pub enum ExprKind {
 
 impl Parse for Expr {
     fn parse(input: &mut Input) -> PResult<Self> {
-        let string =
-            input.accumulate(|ch| ch.is_ascii_digit(), |ch| ch.is_ascii_digit(), "number")?;
-        match string.parse() {
+        let mut number = input.accumulate(
+            |ch| ch.is_ascii_digit(),
+            |ch| ch.is_ascii_digit() || ch == '_',
+            "number",
+        )?;
+
+        if number.contains('_') {
+            number = number.chars().filter(|&ch| ch != '_').collect();
+        }
+
+        match number.parse() {
             Ok(t) => {
                 let expr = ExprData { kind: ExprKind::Integer(t), span: Span::default() };
                 Ok(input.tables.add(expr))
@@ -127,5 +135,8 @@ mod tests {
 
         let items: Vec<Expr> = parse("[40, 2, 42,]", &mut table).unwrap();
         table.check(items, expect!["[40, 2, 42]"]);
+
+        let items: Vec<Expr> = parse("[4_000_000]", &mut table).unwrap();
+        table.check(items, expect!["[4000000]"]);
     }
 }
