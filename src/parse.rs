@@ -33,10 +33,7 @@ impl<'text, 'arena> Input<'text, 'arena> {
 
             self.text = self.text.trim_start();
             if self.text.starts_with("--") {
-                self.text = self
-                    .text
-                    .find('\n')
-                    .map_or("", |index| &self.text[index + 1..]);
+                self.text = self.text.find('\n').map_or("", |index| &self.text[index + 1..]);
             }
 
             if self.text.len() == len {
@@ -98,8 +95,6 @@ impl Edible for char {
             return Ok(());
         }
 
-        Err(ParseError {
-            message: format!("expected `{self}`"),
-        })
+        Err(ParseError { message: format!("expected `{self}`") })
     }
 }

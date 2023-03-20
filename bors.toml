@@ -1,2 +1,2 @@
-status = ["Rust"]
+status = ["rust"]
 delete_merged_branches = true

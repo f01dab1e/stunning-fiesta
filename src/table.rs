@@ -14,9 +14,7 @@ impl RawKey {
     pub const MAX: u32 = 0xFFFF_FF00;
 
     unsafe fn new_unchecked(key: u32) -> Self {
-        Self {
-            key: NonZeroU32::new_unchecked(key + 1),
-        }
+        Self { key: NonZeroU32::new_unchecked(key + 1) }
     }
 }
 
@@ -40,10 +38,7 @@ pub struct AllocTable<K, V> {
 
 impl<K, V> Default for AllocTable<K, V> {
     fn default() -> Self {
-        Self {
-            values: <_>::default(),
-            marker: <_>::default(),
-        }
+        Self { values: <_>::default(), marker: <_>::default() }
     }
 }
 

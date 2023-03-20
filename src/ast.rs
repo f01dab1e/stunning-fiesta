@@ -37,9 +37,7 @@ pub enum ExprKind {
 
 impl Parse for Expr {
     fn parse(_input: &mut Input) -> PResult<Self> {
-        Ok(Expr {
-            raw: RawKey::from_usize(0),
-        })
+        Ok(Expr { raw: RawKey::from_usize(0) })
     }
 }
 

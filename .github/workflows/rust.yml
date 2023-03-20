@@ -14,7 +14,7 @@ env:
   CARGO_INCREMENTAL: 0
 
 jobs:
-  build:
+  rust:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
