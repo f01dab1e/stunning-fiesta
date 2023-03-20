@@ -3,6 +3,12 @@ use crate::{
     table::AllocTable,
 };
 
+#[allow(dead_code)]
+pub fn parse<T: Parse>(text: &str, tables: &mut AllocTable<Expr, ExprData>) -> T {
+    let mut input = Input::new(text, tables);
+    T::parse(&mut input)
+}
+
 pub struct Input<'text, 'arena> {
     pub tables: &'arena mut AllocTable<Expr, ExprData>,
     pub text: &'text str,

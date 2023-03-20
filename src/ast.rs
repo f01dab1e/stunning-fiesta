@@ -52,10 +52,7 @@ impl<T: Parse> Parse for Vec<T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        parse::{Input, Parse},
-        table::AllocTable,
-    };
+    use crate::{parse::parse, table::AllocTable};
 
     use super::Expr;
 
@@ -63,13 +60,10 @@ mod tests {
     fn empty_vec() {
         let mut table = AllocTable::default();
 
-        let items = <Vec<Expr>>::parse(&mut Input::new("[]", &mut table));
+        let items: Vec<Expr> = parse("[]", &mut table);
         assert_eq!(items, []);
 
-        let items = <Vec<Expr>>::parse(&mut Input::new(
-            "-- Мы прячем золото в трастовые фонды\n[]",
-            &mut table,
-        ));
+        let items: Vec<Expr> = parse("-- Мы прячем золото в трастовые фонды\n[]", &mut table);
         assert_eq!(items, []);
     }
 }
