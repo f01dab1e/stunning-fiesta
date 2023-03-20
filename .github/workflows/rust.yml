@@ -1,0 +1,38 @@
+name: Rust
+
+on:
+  push:
+    branches:
+      - master
+      - staging
+      - trying
+  pull_request:
+
+env:
+  RUSTFLAGS: "-D warnings"
+  RUST_BACKTRACE: short
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: Swatinem/rust-cache@v2
+    
+    - name: Install Rust toolchain
+      run: |
+          rustup update --no-self-update stable
+          rustup component add rustfmt clippy
+          
+    - name: Build
+      run: cargo build
+    
+    - name: Run tests
+      run: cargo test
+    
+    - name: Run clippy
+      run: cargo clippy
+      
+    - name: Run fmt
+      run: cargo fmt --check
