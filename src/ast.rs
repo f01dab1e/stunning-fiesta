@@ -87,9 +87,26 @@ impl<T: Parse> Parse for Vec<T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{ast::DebugWithTables, parse::parse, table::AllocTable};
+    use expect_test::{expect, Expect};
 
-    use super::Expr;
+    use crate::{
+        parse::parse,
+        table::AllocTable,
+        {ast::DebugWithTables, Expr},
+    };
+
+    use super::ExprData;
+
+    trait Check {
+        fn check(&self, actual: impl DebugWithTables, expect: Expect);
+    }
+
+    impl Check for AllocTable<Expr, ExprData> {
+        fn check(&self, actual: impl DebugWithTables, expect: Expect) {
+            let actual = actual.debug(self);
+            expect.assert_eq(&actual)
+        }
+    }
 
     #[test]
     fn empty_vec() {
@@ -105,13 +122,10 @@ mod tests {
         let error = parse::<Vec<Expr>>("[", &mut table).unwrap_err();
         assert_eq!(error.message, "unexpected end of input");
 
-        // TODO: use https://crates.io/crates/expect-test
         let items: Vec<Expr> = parse("[40]", &mut table).unwrap();
-        let actual = items.debug(&table);
-        assert_eq!(actual, "[40]");
+        table.check(items, expect!["[40]"]);
 
         let items: Vec<Expr> = parse("[40, 2, 42,]", &mut table).unwrap();
-        let actual = items.debug(&table);
-        assert_eq!(actual, "[40, 2, 42]");
+        table.check(items, expect!["[40, 2, 42]"]);
     }
 }
