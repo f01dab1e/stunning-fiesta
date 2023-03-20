@@ -9,6 +9,7 @@ pub struct Input<'text, 'arena> {
 }
 
 impl<'text, 'arena> Input<'text, 'arena> {
+    #[allow(dead_code)]
     pub fn new(text: &'text str, tables: &'arena mut AllocTable<Expr, ExprData>) -> Self {
         Self { tables, text }
     }
@@ -35,9 +36,8 @@ impl<'text, 'arena> Input<'text, 'arena> {
         self.text.chars().next() == ch.into()
     }
 
-    pub fn expect(&mut self, pattern: impl Edible) {
-        self.skip_trivia();
-        pattern.eat(self);
+    pub fn expect(&mut self, edible: impl Edible) {
+        edible.eat(self);
     }
 
     pub fn parse<T: Parse>(&mut self) -> T {
@@ -78,8 +78,11 @@ pub trait Edible {
 
 impl Edible for char {
     fn eat(self, mut input: &mut Input) {
+        input.skip_trivia();
+
         if let Some(rest) = input.text.strip_prefix(self) {
             input.text = rest;
+            return;
         }
 
         panic!("expected {self}");

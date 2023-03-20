@@ -4,7 +4,7 @@ use crate::{
     table::RawKey,
 };
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Expr {
     pub raw: RawKey,
 }
@@ -47,5 +47,29 @@ impl<T: Parse> Parse for Vec<T> {
         let items = input.parse_comma(']');
         input.expect(']');
         items
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        parse::{Input, Parse},
+        table::AllocTable,
+    };
+
+    use super::Expr;
+
+    #[test]
+    fn empty_vec() {
+        let mut table = AllocTable::default();
+
+        let items = <Vec<Expr>>::parse(&mut Input::new("[]", &mut table));
+        assert_eq!(items, []);
+
+        let items = <Vec<Expr>>::parse(&mut Input::new(
+            "-- Мы прячем золото в трастовые фонды\n[]",
+            &mut table,
+        ));
+        assert_eq!(items, []);
     }
 }
