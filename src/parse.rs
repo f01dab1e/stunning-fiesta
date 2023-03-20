@@ -3,10 +3,17 @@ use crate::{
     table::AllocTable,
 };
 
+pub type PResult<T> = Result<T, ParseError>;
+
 #[allow(dead_code)]
-pub fn parse<T: Parse>(text: &str, tables: &mut AllocTable<Expr, ExprData>) -> T {
+pub fn parse<T: Parse>(text: &str, tables: &mut AllocTable<Expr, ExprData>) -> PResult<T> {
     let mut input = Input::new(text, tables);
     T::parse(&mut input)
+}
+
+#[derive(Debug)]
+pub struct ParseError {
+    pub message: String,
 }
 
 pub struct Input<'text, 'arena> {
@@ -42,23 +49,23 @@ impl<'text, 'arena> Input<'text, 'arena> {
         self.text.chars().next() == ch.into()
     }
 
-    pub fn expect(&mut self, edible: impl Edible) {
-        edible.eat(self);
+    pub fn expect(&mut self, edible: impl Edible) -> PResult<()> {
+        edible.eat(self)
     }
 
-    pub fn parse<T: Parse>(&mut self) -> T {
+    pub fn parse<T: Parse>(&mut self) -> PResult<T> {
         T::parse(self)
     }
 
-    pub fn parse_comma<T: Parse>(&mut self, close: char) -> Vec<T> {
+    pub fn parse_comma<T: Parse>(&mut self, close: char) -> PResult<Vec<T>> {
         T::parse_comma(self, close)
     }
 }
 
 pub trait Parse: Sized {
-    fn parse(input: &mut Input) -> Self;
+    fn parse(input: &mut Input) -> PResult<Self>;
 
-    fn parse_comma(input: &mut Input, close: char) -> Vec<Self> {
+    fn parse_comma(input: &mut Input, close: char) -> PResult<Vec<Self>> {
         let mut items = Vec::new();
 
         loop {
@@ -68,29 +75,31 @@ pub trait Parse: Sized {
                 break;
             }
 
-            let item = input.parse();
+            let item = input.parse()?;
             items.push(item);
 
-            input.expect(',');
+            input.expect(',')?;
         }
 
-        items
+        Ok(items)
     }
 }
 
 pub trait Edible {
-    fn eat(self, input: &mut Input);
+    fn eat(self, input: &mut Input) -> PResult<()>;
 }
 
 impl Edible for char {
-    fn eat(self, mut input: &mut Input) {
+    fn eat(self, mut input: &mut Input) -> PResult<()> {
         input.skip_trivia();
 
         if let Some(rest) = input.text.strip_prefix(self) {
             input.text = rest;
-            return;
+            return Ok(());
         }
 
-        panic!("expected {self}");
+        Err(ParseError {
+            message: format!("expected `{self}`"),
+        })
     }
 }

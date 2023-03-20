@@ -1,7 +1,7 @@
 use crate::{
-    parse::{Input, Parse},
+    parse::{Input, PResult, Parse},
     span::Span,
-    table::RawKey,
+    table::{Key as _, RawKey},
 };
 
 #[derive(Debug, PartialEq, Eq)]
@@ -36,17 +36,20 @@ pub enum ExprKind {
 }
 
 impl Parse for Expr {
-    fn parse(_input: &mut Input) -> Self {
-        todo!()
+    fn parse(_input: &mut Input) -> PResult<Self> {
+        Ok(Expr {
+            raw: RawKey::from_usize(0),
+        })
     }
 }
 
 impl<T: Parse> Parse for Vec<T> {
-    fn parse(input: &mut Input) -> Self {
-        input.expect('[');
-        let items = input.parse_comma(']');
-        input.expect(']');
-        items
+    fn parse(input: &mut Input) -> PResult<Self> {
+        input.expect('[')?;
+        let items = input.parse_comma(']')?;
+        input.expect(']')?;
+
+        Ok(items)
     }
 }
 
@@ -60,10 +63,14 @@ mod tests {
     fn empty_vec() {
         let mut table = AllocTable::default();
 
-        let items: Vec<Expr> = parse("[]", &mut table);
+        let items: Vec<Expr> = parse("[]", &mut table).unwrap();
         assert_eq!(items, []);
 
-        let items: Vec<Expr> = parse("-- Мы прячем золото в трастовые фонды\n[]", &mut table);
+        let items: Vec<Expr> =
+            parse("-- Мы прячем золото в трастовые фонды\n[]", &mut table).unwrap();
         assert_eq!(items, []);
+
+        let error = parse::<Vec<Expr>>("[", &mut table).unwrap_err();
+        assert_eq!(error.message, "expected `,`");
     }
 }
