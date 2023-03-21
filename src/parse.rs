@@ -67,8 +67,8 @@ impl<'text, 'arena> Input<'text, 'arena> {
         self.text.chars().next() == ch.into()
     }
 
-    pub fn expect(&mut self, edible: impl Edible) -> PResult<()> {
-        edible.eat(self)
+    pub fn expect(&mut self, fragment: impl Fragment) -> PResult<()> {
+        fragment.expect(self)
     }
 
     pub fn parse<T: Parse>(&mut self) -> PResult<T> {
@@ -125,12 +125,12 @@ pub trait Parse: Sized {
     }
 }
 
-pub trait Edible {
-    fn eat(self, input: &mut Input) -> PResult<()>;
+pub trait Fragment {
+    fn expect(self, input: &mut Input) -> PResult<()>;
 }
 
-impl Edible for char {
-    fn eat(self, input: &mut Input) -> PResult<()> {
+impl Fragment for char {
+    fn expect(self, input: &mut Input) -> PResult<()> {
         input.skip_trivia();
 
         if input.shift()? != self {
