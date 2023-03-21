@@ -67,6 +67,19 @@ impl<'text, 'arena> Input<'text, 'arena> {
         self.text.chars().next() == ch.into()
     }
 
+    pub fn delimited<T>(
+        &mut self,
+        open: char,
+        close: char,
+        f: impl FnOnce(&mut Self) -> PResult<T>,
+    ) -> PResult<T> {
+        self.expect(open)?;
+        let item = f(self)?;
+        self.expect(close)?;
+
+        Ok(item)
+    }
+
     pub fn expect(&mut self, fragment: impl Fragment) -> PResult<()> {
         fragment.expect(self)
     }

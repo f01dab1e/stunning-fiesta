@@ -85,11 +85,7 @@ impl Parse for Expr {
 
 impl<T: Parse> Parse for Vec<T> {
     fn parse(input: &mut Input) -> PResult<Self> {
-        input.expect('[')?;
-        let items = input.parse_comma(']')?;
-        input.expect(']')?;
-
-        Ok(items)
+        input.delimited('[', ']', |this| this.parse_comma(']'))
     }
 }
 
