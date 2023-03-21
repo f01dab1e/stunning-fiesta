@@ -105,19 +105,19 @@ mod tests {
 
     use super::ExprData;
 
-    trait Check {
-        fn check(&self, actual: impl DebugWithTables, expect: Expect);
+    trait Assert {
+        fn assert_eq(&self, actual: impl DebugWithTables, expect: Expect);
     }
 
-    impl Check for AllocTable<Expr, ExprData> {
-        fn check(&self, actual: impl DebugWithTables, expect: Expect) {
+    impl Assert for AllocTable<Expr, ExprData> {
+        fn assert_eq(&self, actual: impl DebugWithTables, expect: Expect) {
             let actual = actual.debug(self);
             expect.assert_eq(&actual)
         }
     }
 
     #[test]
-    fn empty_vec() {
+    fn it_works() {
         let mut table = AllocTable::default();
 
         let items: Vec<Expr> = parse("[]", &mut table).unwrap();
@@ -131,12 +131,12 @@ mod tests {
         assert_eq!(error.message, "unexpected end of input");
 
         let items: Vec<Expr> = parse("[40]", &mut table).unwrap();
-        table.check(items, expect!["[40]"]);
+        table.assert_eq(items, expect!["[40]"]);
 
         let items: Vec<Expr> = parse("[40, 2, 42,]", &mut table).unwrap();
-        table.check(items, expect!["[40, 2, 42]"]);
+        table.assert_eq(items, expect!["[40, 2, 42]"]);
 
         let items: Vec<Expr> = parse("[4_000_000]", &mut table).unwrap();
-        table.check(items, expect!["[4000000]"]);
+        table.assert_eq(items, expect!["[4000000]"]);
     }
 }
