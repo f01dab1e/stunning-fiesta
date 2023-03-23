@@ -1,32 +1,19 @@
 use crate::{
     parse::{Input, PResult, Parse, ParseError},
     span::Span,
+    syntax::DebugWithTables,
     table::{AllocTable, Key, RawKey},
 };
+
+#[derive(Debug)]
+pub struct ExprData {
+    pub kind: ExprKind,
+    pub span: Span,
+}
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Expr {
     pub raw: RawKey,
-}
-
-trait DebugWithTables {
-    fn debug(&self, tables: &AllocTable<Expr, ExprData>) -> String;
-}
-
-impl DebugWithTables for Expr {
-    fn debug(&self, tables: &AllocTable<Expr, ExprData>) -> String {
-        match tables.data(*self).kind {
-            ExprKind::Integer(n) => n.to_string(),
-            _ => unreachable!(),
-        }
-    }
-}
-
-impl<T: DebugWithTables> DebugWithTables for Vec<T> {
-    fn debug(&self, tables: &AllocTable<Expr, ExprData>) -> String {
-        let items = self.iter().map(|item| item.debug(tables)).collect::<Vec<_>>().join(", ");
-        format!("[{items}]")
-    }
 }
 
 impl Key for Expr {
@@ -39,10 +26,13 @@ impl Key for Expr {
     }
 }
 
-#[derive(Debug)]
-pub struct ExprData {
-    pub kind: ExprKind,
-    pub span: Span,
+impl DebugWithTables for Expr {
+    fn debug(&self, tables: &AllocTable<Expr, ExprData>) -> String {
+        match tables.data(*self).kind {
+            ExprKind::Integer(n) => n.to_string(),
+            _ => unreachable!(),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -83,12 +73,6 @@ impl Parse for Expr {
     }
 }
 
-impl<T: Parse> Parse for Vec<T> {
-    fn parse(input: &mut Input) -> PResult<Self> {
-        input.delimited('[', ']', |this| this.parse_comma(']'))
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use expect_test::{expect, Expect};
@@ -96,7 +80,7 @@ mod tests {
     use crate::{
         parse::parse,
         table::AllocTable,
-        {ast::DebugWithTables, Expr},
+        {syntax::DebugWithTables, Expr},
     };
 
     use super::ExprData;

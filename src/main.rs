@@ -1,9 +1,9 @@
-use crate::ast::Expr;
+use crate::syntax::Expr;
 use crate::table::AllocTable;
 
-mod ast;
 mod parse;
 mod span;
+mod syntax;
 mod table;
 
 fn main() {
