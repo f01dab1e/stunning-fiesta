@@ -1,32 +1,19 @@
 use crate::{
     parse::{Input, PResult, Parse, ParseError},
     span::Span,
+    syntax::Debug,
     table::{AllocTable, Key, RawKey},
 };
+
+#[derive(Debug)]
+pub struct ExprData {
+    pub kind: ExprKind,
+    pub span: Span,
+}
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Expr {
     pub raw: RawKey,
-}
-
-trait DebugWithTables {
-    fn debug(&self, tables: &AllocTable<Expr, ExprData>) -> String;
-}
-
-impl DebugWithTables for Expr {
-    fn debug(&self, tables: &AllocTable<Expr, ExprData>) -> String {
-        match tables.data(*self).kind {
-            ExprKind::Integer(n) => n.to_string(),
-            _ => unreachable!(),
-        }
-    }
-}
-
-impl<T: DebugWithTables> DebugWithTables for Vec<T> {
-    fn debug(&self, tables: &AllocTable<Expr, ExprData>) -> String {
-        let items = self.iter().map(|item| item.debug(tables)).collect::<Vec<_>>().join(", ");
-        format!("[{items}]")
-    }
 }
 
 impl Key for Expr {
@@ -39,10 +26,17 @@ impl Key for Expr {
     }
 }
 
-#[derive(Debug)]
-pub struct ExprData {
-    pub kind: ExprKind,
-    pub span: Span,
+impl Debug for Expr {
+    fn fmt(
+        &self,
+        tables: &AllocTable<Expr, ExprData>,
+        f: &mut std::fmt::Formatter<'_>,
+    ) -> std::fmt::Result {
+        match tables.data(*self).kind {
+            ExprKind::Integer(n) => write!(f, "{n}"),
+            _ => unreachable!(),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -83,12 +77,6 @@ impl Parse for Expr {
     }
 }
 
-impl<T: Parse> Parse for Vec<T> {
-    fn parse(input: &mut Input) -> PResult<Self> {
-        input.delimited('[', ']', |this| this.parse_comma(']'))
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use expect_test::{expect, Expect};
@@ -96,19 +84,19 @@ mod tests {
     use crate::{
         parse::parse,
         table::AllocTable,
-        {ast::DebugWithTables, Expr},
+        {syntax::Debug, Expr},
     };
 
     use super::ExprData;
 
     trait Assert {
-        fn assert_eq(&self, actual: impl DebugWithTables, expect: Expect);
+        fn assert_eq(&self, actual: impl Debug, expect: Expect);
     }
 
     impl Assert for AllocTable<Expr, ExprData> {
-        fn assert_eq(&self, actual: impl DebugWithTables, expect: Expect) {
-            let actual = actual.debug(self);
-            expect.assert_eq(&actual)
+        fn assert_eq(&self, actual: impl Debug, expect: Expect) {
+            let actual = actual.debug_with(self);
+            expect.assert_debug_eq(&actual)
         }
     }
 
@@ -127,12 +115,35 @@ mod tests {
         assert_eq!(error.message, "unexpected end of input");
 
         let items: Vec<Expr> = parse("[40]", &mut table).unwrap();
-        table.assert_eq(items, expect!["[40]"]);
+        table.assert_eq(
+            items,
+            expect![[r#"
+            [
+                40,
+            ]
+        "#]],
+        );
 
         let items: Vec<Expr> = parse("[40, 2, 42,]", &mut table).unwrap();
-        table.assert_eq(items, expect!["[40, 2, 42]"]);
+        table.assert_eq(
+            items,
+            expect![[r#"
+            [
+                40,
+                2,
+                42,
+            ]
+        "#]],
+        );
 
         let items: Vec<Expr> = parse("[4_000_000]", &mut table).unwrap();
-        table.assert_eq(items, expect!["[4000000]"]);
+        table.assert_eq(
+            items,
+            expect![[r#"
+            [
+                4000000,
+            ]
+        "#]],
+        );
     }
 }

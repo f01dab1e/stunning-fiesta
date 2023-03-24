@@ -1,5 +1,5 @@
 use crate::{
-    ast::{Expr, ExprData},
+    syntax::{Expr, ExprData},
     table::AllocTable,
 };
 
