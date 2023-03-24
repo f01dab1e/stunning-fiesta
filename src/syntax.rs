@@ -1,7 +1,7 @@
 mod debug;
 mod expr;
 
-pub use debug::DebugWithTables;
+pub use debug::Debug;
 pub use expr::{Expr, ExprData, ExprKind};
 
 use crate::{
@@ -9,10 +9,14 @@ use crate::{
     table::AllocTable,
 };
 
-impl<T: DebugWithTables> DebugWithTables for Vec<T> {
-    fn debug(&self, tables: &AllocTable<Expr, ExprData>) -> String {
-        let items = self.iter().map(|item| item.debug(tables)).collect::<Vec<_>>().join(", ");
-        format!("[{items}]")
+impl<T: Debug> Debug for Vec<T> {
+    fn fmt(
+        &self,
+        tables: &AllocTable<Expr, ExprData>,
+        f: &mut std::fmt::Formatter<'_>,
+    ) -> std::fmt::Result {
+        let items = self.iter().map(|item| item.debug_with(tables));
+        f.debug_list().entries(items).finish()
     }
 }
 
