@@ -5,12 +5,6 @@ use crate::{
 
 pub type PResult<T> = Result<T, ParseError>;
 
-#[allow(dead_code)]
-pub fn parse<T: Parse>(text: &str, tables: &mut AllocTable<Expr, ExprData>) -> PResult<T> {
-    let mut input = Input::new(text, tables);
-    T::parse(&mut input)
-}
-
 #[derive(Debug)]
 pub struct ParseError {
     pub message: String,
@@ -22,7 +16,6 @@ pub struct Input<'text, 'arena> {
 }
 
 impl<'text, 'arena> Input<'text, 'arena> {
-    #[allow(dead_code)]
     pub fn new(text: &'text str, tables: &'arena mut AllocTable<Expr, ExprData>) -> Self {
         Self { tables, text }
     }

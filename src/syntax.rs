@@ -25,3 +25,8 @@ impl<T: Parse> Parse for Vec<T> {
         input.delimited('[', ']', |this| this.parse_comma(']'))
     }
 }
+
+pub fn parse<T: Parse>(text: &str, tables: &mut AllocTable<Expr, ExprData>) -> PResult<T> {
+    let mut input = Input::new(text, tables);
+    T::parse(&mut input)
+}

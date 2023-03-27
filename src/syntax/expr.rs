@@ -82,7 +82,7 @@ mod tests {
     use expect_test::{expect, Expect};
 
     use crate::{
-        parse::parse,
+        syntax::parse,
         table::AllocTable,
         {syntax::Debug, Expr},
     };

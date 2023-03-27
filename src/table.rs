@@ -30,7 +30,6 @@ impl Key for RawKey {
     }
 }
 
-#[allow(dead_code)]
 pub struct AllocTable<K, V> {
     values: Vec<V>,
     marker: PhantomData<K>,
@@ -42,7 +41,6 @@ impl<K, V> Default for AllocTable<K, V> {
     }
 }
 
-#[allow(dead_code)]
 impl<K: Key, V> AllocTable<K, V> {
     pub fn add(&mut self, value: V) -> K {
         let key = self.values.len();

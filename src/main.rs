@@ -11,7 +11,7 @@ fn main() {
     let text = std::fs::read_to_string(path).unwrap();
 
     let mut tables = AllocTable::default();
-    let ast: Vec<Expr> = parse::parse(&text, &mut tables).unwrap();
+    let ast: Vec<Expr> = syntax::parse(&text, &mut tables).unwrap();
 
     dbg!(ast);
 }
