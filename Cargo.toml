@@ -6,4 +6,5 @@ edition = "2021"
 [dependencies]
 
 [dev-dependencies]
+extension-trait = "1.0"
 expect-test = "1.4"

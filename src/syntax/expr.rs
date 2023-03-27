@@ -80,19 +80,17 @@ impl Parse for Expr {
 #[cfg(test)]
 mod tests {
     use expect_test::{expect, Expect};
+    use extension_trait::extension_trait;
 
     use crate::{
-        parse::parse,
+        syntax::parse,
         table::AllocTable,
         {syntax::Debug, Expr},
     };
 
     use super::ExprData;
 
-    trait Assert {
-        fn assert_eq(&self, actual: impl Debug, expect: Expect);
-    }
-
+    #[extension_trait]
     impl Assert for AllocTable<Expr, ExprData> {
         fn assert_eq(&self, actual: impl Debug, expect: Expect) {
             let actual = actual.debug_with(self);
