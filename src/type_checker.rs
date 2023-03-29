@@ -3,7 +3,7 @@
 use self::Mode::{CheckType, Synthesize};
 use crate::{
     syntax::{Expr, ExprData, ExprKind},
-    table::AllocTable,
+    tables::Tables,
 };
 
 #[derive(Clone, Copy)]
@@ -15,13 +15,13 @@ enum Mode {
 }
 
 pub struct TypeChecker<'arena> {
-    tables: &'arena AllocTable<Expr, ExprData>,
+    tables: &'arena Tables,
 
     bool_ty: Ty,
 }
 
 impl<'arena> TypeChecker<'arena> {
-    pub fn new(tables: &'arena AllocTable<Expr, ExprData>) -> TypeChecker {
+    pub fn new(tables: &'arena Tables) -> TypeChecker {
         TypeChecker { tables, bool_ty: Ty }
     }
 

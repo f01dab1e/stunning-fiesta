@@ -2,7 +2,8 @@ use crate::{
     parse::{Input, PResult, Parse, ParseError},
     span::Span,
     syntax::Debug,
-    table::{AllocTable, Key, RawKey},
+    table::{Key, RawKey},
+    tables::Tables,
 };
 
 #[derive(Debug)]
@@ -27,11 +28,7 @@ impl Key for Expr {
 }
 
 impl Debug for Expr {
-    fn fmt(
-        &self,
-        tables: &AllocTable<Expr, ExprData>,
-        f: &mut std::fmt::Formatter<'_>,
-    ) -> std::fmt::Result {
+    fn fmt(&self, tables: &Tables, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match tables.data(*self).kind {
             ExprKind::Integer(n) => write!(f, "{n}"),
             _ => unreachable!(),
@@ -84,14 +81,12 @@ mod tests {
 
     use crate::{
         syntax::parse,
-        table::AllocTable,
+        tables::Tables,
         {syntax::Debug, Expr},
     };
 
-    use super::ExprData;
-
     #[extension_trait]
-    impl Assert for AllocTable<Expr, ExprData> {
+    impl Assert for Tables {
         fn assert_eq(&self, actual: impl Debug, expect: Expect) {
             let actual = actual.debug_with(self);
             expect.assert_debug_eq(&actual)
@@ -100,7 +95,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let mut table = AllocTable::default();
+        let mut table = Tables::default();
 
         let items: Vec<Expr> = parse("[]", &mut table).unwrap();
         assert_eq!(items, []);

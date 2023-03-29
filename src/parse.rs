@@ -1,7 +1,4 @@
-use crate::{
-    syntax::{Expr, ExprData},
-    table::AllocTable,
-};
+use crate::tables::Tables;
 
 pub type PResult<T> = Result<T, ParseError>;
 
@@ -10,14 +7,14 @@ pub struct ParseError {
     pub message: String,
 }
 
-pub struct Input<'text, 'arena> {
-    pub tables: &'arena mut AllocTable<Expr, ExprData>,
+pub struct Input<'text, 'tables> {
     pub text: &'text str,
+    pub tables: &'tables mut Tables,
 }
 
-impl<'text, 'arena> Input<'text, 'arena> {
-    pub fn new(text: &'text str, tables: &'arena mut AllocTable<Expr, ExprData>) -> Self {
-        Self { tables, text }
+impl<'text, 'tables> Input<'text, 'tables> {
+    pub fn new(text: &'text str, tables: &'tables mut Tables) -> Self {
+        Self { text, tables }
     }
 
     fn skip_trivia(&mut self) {

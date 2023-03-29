@@ -6,15 +6,11 @@ pub use expr::{Expr, ExprData, ExprKind};
 
 use crate::{
     parse::{Input, PResult, Parse},
-    table::AllocTable,
+    tables::Tables,
 };
 
 impl<T: Debug> Debug for Vec<T> {
-    fn fmt(
-        &self,
-        tables: &AllocTable<Expr, ExprData>,
-        f: &mut std::fmt::Formatter<'_>,
-    ) -> std::fmt::Result {
+    fn fmt(&self, tables: &Tables, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let items = self.iter().map(|item| item.debug_with(tables));
         f.debug_list().entries(items).finish()
     }
@@ -26,7 +22,7 @@ impl<T: Parse> Parse for Vec<T> {
     }
 }
 
-pub fn parse<T: Parse>(text: &str, tables: &mut AllocTable<Expr, ExprData>) -> PResult<T> {
+pub fn parse<T: Parse>(text: &str, tables: &mut Tables) -> PResult<T> {
     let mut input = Input::new(text, tables);
     T::parse(&mut input)
 }
