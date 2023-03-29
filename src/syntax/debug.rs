@@ -1,23 +1,17 @@
-use crate::table::AllocTable;
-
-use super::{Expr, ExprData};
+use crate::tables::Tables;
 
 pub trait Debug: Sized {
-    fn debug_with<'data, 'arena>(
+    fn debug_with<'data, 'tables>(
         &'data self,
-        tables: &'arena AllocTable<Expr, ExprData>,
-    ) -> DebugWith<'data, 'arena, Self> {
+        tables: &'tables Tables,
+    ) -> DebugWith<'data, 'tables, Self> {
         DebugWith(self, tables)
     }
 
-    fn fmt(
-        &self,
-        tables: &AllocTable<Expr, ExprData>,
-        f: &mut std::fmt::Formatter<'_>,
-    ) -> std::fmt::Result;
+    fn fmt(&self, tables: &Tables, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result;
 }
 
-pub struct DebugWith<'data, 'arena, T>(&'data T, &'arena AllocTable<Expr, ExprData>);
+pub struct DebugWith<'data, 'tables, T>(&'data T, &'tables Tables);
 
 impl<'data, 'arena, T: Debug> std::fmt::Debug for DebugWith<'data, 'arena, T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
