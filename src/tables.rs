@@ -1,11 +1,13 @@
 use crate::{
     syntax::{Expr, ExprData},
     table::AllocTable,
+    type_checker::{Ty, TyData},
 };
 
 #[derive(Default)]
 pub struct Tables {
     exprs: AllocTable<Expr, ExprData>,
+    tys: AllocTable<Ty, TyData>,
 }
 
 impl Tables {
@@ -43,5 +45,21 @@ impl AllocKey for Expr {
 
     fn data(self, tables: &Tables) -> &Self::Value {
         tables.exprs.data(self)
+    }
+}
+
+impl AllocValue for TyData {
+    type Key = Ty;
+
+    fn add(self, tables: &mut Tables) -> Self::Key {
+        tables.tys.add(self)
+    }
+}
+
+impl AllocKey for Ty {
+    type Value = TyData;
+
+    fn data(self, tables: &Tables) -> &Self::Value {
+        tables.tys.data(self)
     }
 }

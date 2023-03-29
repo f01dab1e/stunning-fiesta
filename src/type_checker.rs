@@ -3,26 +3,46 @@
 use self::Mode::{CheckType, Synthesize};
 use crate::{
     syntax::{Expr, ExprData, ExprKind},
+    table::{Key, RawKey},
     tables::Tables,
 };
 
 #[derive(Clone, Copy)]
-struct Ty;
+pub struct Ty {
+    raw: RawKey,
+}
+
+impl Key for Ty {
+    fn from_usize(key: usize) -> Ty {
+        Ty { raw: RawKey::from_usize(key) }
+    }
+
+    fn as_usize(&self) -> usize {
+        self.raw.as_usize()
+    }
+}
+
+pub enum TyData {
+    Bool,
+    Integer,
+    Float,
+    List(Ty),
+}
 
 enum Mode {
     Synthesize,
     CheckType(Ty),
 }
 
-pub struct TypeChecker<'arena> {
-    tables: &'arena Tables,
+pub struct TypeChecker<'tables> {
+    tables: &'tables Tables,
 
     bool_ty: Ty,
 }
 
-impl<'arena> TypeChecker<'arena> {
-    pub fn new(tables: &'arena Tables) -> TypeChecker {
-        TypeChecker { tables, bool_ty: Ty }
+impl<'tables> TypeChecker<'tables> {
+    pub fn new(tables: &'tables Tables) -> TypeChecker {
+        TypeChecker { tables, bool_ty: Ty::from_usize(0) }
     }
 
     fn infer_variable(&self) -> Ty {
@@ -30,17 +50,17 @@ impl<'arena> TypeChecker<'arena> {
     }
 
     fn check_expr(&self, mode: Mode, expr: Expr) {
-        let actual = self.infer_expr_ty(expr);
+        let actual = self.infer_expr(expr);
         if let CheckType(expected) = mode {
             self.equate(expr, actual, expected)
         }
     }
 
-    fn infer_expr_ty(&self, expr: Expr) -> Ty {
+    fn infer_expr(&self, expr: Expr) -> Ty {
         match self.tables.data(expr).kind {
             ExprKind::Integer(_) => todo!(),
             ExprKind::Float(_) => todo!(),
-            ExprKind::Boolean(_) => todo!(),
+            ExprKind::Boolean(_) => self.bool_ty,
             ExprKind::List(_) => todo!(),
             ExprKind::If(test, if_true, if_false) => {
                 self.check_expr(CheckType(self.bool_ty), test);

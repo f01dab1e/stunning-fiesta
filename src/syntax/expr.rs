@@ -18,7 +18,7 @@ pub struct Expr {
 }
 
 impl Key for Expr {
-    fn from_usize(key: usize) -> Self {
+    fn from_usize(key: usize) -> Expr {
         Expr { raw: RawKey::from_usize(key) }
     }
 
