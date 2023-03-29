@@ -5,7 +5,7 @@ pub trait Key {
     fn as_usize(&self) -> usize;
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct RawKey {
     key: NonZeroU32,
 }

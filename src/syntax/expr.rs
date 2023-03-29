@@ -12,20 +12,7 @@ pub struct ExprData {
     pub span: Span,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub struct Expr {
-    pub raw: RawKey,
-}
-
-impl Key for Expr {
-    fn from_usize(key: usize) -> Expr {
-        Expr { raw: RawKey::from_usize(key) }
-    }
-
-    fn as_usize(&self) -> usize {
-        self.raw.as_usize()
-    }
-}
+key![Expr];
 
 impl Debug for Expr {
     fn fmt(&self, tables: &Tables, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

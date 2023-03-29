@@ -7,20 +7,7 @@ use crate::{
     tables::Tables,
 };
 
-#[derive(Clone, Copy)]
-pub struct Ty {
-    raw: RawKey,
-}
-
-impl Key for Ty {
-    fn from_usize(key: usize) -> Ty {
-        Ty { raw: RawKey::from_usize(key) }
-    }
-
-    fn as_usize(&self) -> usize {
-        self.raw.as_usize()
-    }
-}
+key![Ty];
 
 pub enum TyData {
     Bool,
