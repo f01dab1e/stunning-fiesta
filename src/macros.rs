@@ -3,7 +3,7 @@ macro_rules! key {
     ($name:ident) => {
         #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
         pub struct $name {
-            raw: $crate::table::RawKey,
+            raw: $crate::tables::RawKey,
         }
 
         impl Key for $name {

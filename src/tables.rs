@@ -1,13 +1,20 @@
+mod alloc;
+mod intern;
+mod key;
+
 use crate::{
     syntax::{Expr, ExprData},
-    table::AllocTable,
     type_checker::{Ty, TyData},
 };
+
+pub use alloc::AllocTable;
+pub use intern::InternTable;
+pub use key::{Key, RawKey};
 
 #[derive(Default)]
 pub struct Tables {
     exprs: AllocTable<Expr, ExprData>,
-    tys: AllocTable<Ty, TyData>,
+    tys: InternTable<Ty, TyData>,
 }
 
 impl Tables {
