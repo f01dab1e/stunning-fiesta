@@ -2,9 +2,10 @@ use syntax::Debug;
 use tables::Tables;
 
 use crate::syntax::Expr;
-
 use crate::type_checker::TypeChecker;
 
+#[macro_use]
+mod macros;
 mod parse;
 mod span;
 mod syntax;
