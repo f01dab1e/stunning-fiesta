@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+indexmap = "1.9"
+rustc-hash = "1.1"
 
 [dev-dependencies]
 extension-trait = "1.0"

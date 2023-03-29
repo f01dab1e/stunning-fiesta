@@ -3,12 +3,12 @@
 use self::Mode::{CheckType, Synthesize};
 use crate::{
     syntax::{Expr, ExprData, ExprKind},
-    table::{Key, RawKey},
-    tables::Tables,
+    tables::{Key, RawKey, Tables},
 };
 
 key![Ty];
 
+#[derive(PartialEq, Eq, Hash)]
 pub enum TyData {
     Bool,
     Integer,

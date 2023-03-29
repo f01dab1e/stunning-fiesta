@@ -4,12 +4,16 @@ use tables::Tables;
 use crate::syntax::Expr;
 use crate::type_checker::TypeChecker;
 
+mod collection {
+    pub type IndexSet<T> =
+        indexmap::IndexSet<T, std::hash::BuildHasherDefault<rustc_hash::FxHasher>>;
+}
+
 #[macro_use]
 mod macros;
 mod parse;
 mod span;
 mod syntax;
-mod table;
 mod tables;
 mod type_checker;
 
