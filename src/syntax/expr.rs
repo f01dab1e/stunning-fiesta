@@ -91,12 +91,18 @@ mod tests {
     fn it_works() {
         let mut table = Tables::default();
 
-        table.assert_ast::<Vec<Expr>>("[]", expect![[r#"
+        table.assert_ast::<Vec<Expr>>(
+            "[]",
+            expect![[r#"
             []
-        "#]]);
-        table.assert_ast::<Vec<Expr>>("-- Мы прячем золото в трастовые фонды\n[]", expect![[r#"
+        "#]],
+        );
+        table.assert_ast::<Vec<Expr>>(
+            "-- Мы прячем золото в трастовые фонды\n[]",
+            expect![[r#"
             []
-        "#]]);
+        "#]],
+        );
 
         let error = parse::<Vec<Expr>>("[", &mut table).unwrap_err();
         assert_eq!(error.message, "unexpected end of input");
