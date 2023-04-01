@@ -66,6 +66,7 @@ mod tests {
     use extension_trait::extension_trait;
 
     use crate::{
+        parse::Parse,
         syntax::parse,
         tables::Tables,
         {syntax::Debug, Expr},
@@ -73,9 +74,16 @@ mod tests {
 
     #[extension_trait]
     impl Assert for Tables {
+        #[track_caller]
         fn assert_eq(&self, actual: impl Debug, expect: Expect) {
             let actual = actual.debug_with(self);
             expect.assert_debug_eq(&actual)
+        }
+
+        #[track_caller]
+        fn assert_ast<T: Parse + Debug>(&mut self, text: &str, expect: Expect) {
+            let actual = parse::<T>(text, self).unwrap();
+            self.assert_eq(actual, expect)
         }
     }
 
@@ -83,19 +91,24 @@ mod tests {
     fn it_works() {
         let mut table = Tables::default();
 
-        let items: Vec<Expr> = parse("[]", &mut table).unwrap();
-        assert_eq!(items, []);
-
-        let items: Vec<Expr> =
-            parse("-- Мы прячем золото в трастовые фонды\n[]", &mut table).unwrap();
-        assert_eq!(items, []);
+        table.assert_ast::<Vec<Expr>>(
+            "[]",
+            expect![[r#"
+            []
+        "#]],
+        );
+        table.assert_ast::<Vec<Expr>>(
+            "-- Мы прячем золото в трастовые фонды\n[]",
+            expect![[r#"
+            []
+        "#]],
+        );
 
         let error = parse::<Vec<Expr>>("[", &mut table).unwrap_err();
         assert_eq!(error.message, "unexpected end of input");
 
-        let items: Vec<Expr> = parse("[40]", &mut table).unwrap();
-        table.assert_eq(
-            items,
+        table.assert_ast::<Vec<Expr>>(
+            "[40]",
             expect![[r#"
             [
                 40,
@@ -103,9 +116,8 @@ mod tests {
         "#]],
         );
 
-        let items: Vec<Expr> = parse("[40, 2, 42,]", &mut table).unwrap();
-        table.assert_eq(
-            items,
+        table.assert_ast::<Vec<Expr>>(
+            "[40, 2, 42]",
             expect![[r#"
             [
                 40,
@@ -115,9 +127,8 @@ mod tests {
         "#]],
         );
 
-        let items: Vec<Expr> = parse("[4_000_000]", &mut table).unwrap();
-        table.assert_eq(
-            items,
+        table.assert_ast::<Vec<Expr>>(
+            "[4_000_000]",
             expect![[r#"
             [
                 4000000,

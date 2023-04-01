@@ -42,14 +42,14 @@ impl<'text, 'tables> Input<'text, 'tables> {
     }
 
     pub fn shift_if(&mut self, f: impl Fn(char) -> bool) -> Option<char> {
-        let ch = self.text.chars().next();
+        let ch = self.text.chars().next()?;
 
         match ch {
-            Some(ch) if f(ch) => {
+            ch if f(ch) => {
                 let _ = self.shift();
                 Some(ch)
             }
-            Some(_) | None => None,
+            _ => None,
         }
     }
 
