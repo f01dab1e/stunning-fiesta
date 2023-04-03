@@ -1,4 +1,5 @@
 mod alloc;
+mod debug;
 mod intern;
 mod key;
 
@@ -10,6 +11,7 @@ use crate::{
 };
 
 pub use alloc::AllocTable;
+pub use debug::{Debug, DebugWith};
 pub use intern::InternTable;
 pub use key::{Key, RawKey};
 

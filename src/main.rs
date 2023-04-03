@@ -1,5 +1,4 @@
-use syntax::Debug;
-use tables::Tables;
+use tables::{Debug, Tables};
 
 use crate::syntax::Expr;
 use crate::type_checker::TypeChecker;

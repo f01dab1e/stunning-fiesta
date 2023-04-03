@@ -1,12 +1,10 @@
-mod debug;
 mod expr;
 
-pub use debug::Debug;
 pub use expr::{Expr, ExprData, ExprKind};
 
 use crate::{
     parse::{Input, PResult, Parse},
-    tables::Tables,
+    tables::{Debug, Tables},
 };
 
 impl<T: Debug> Debug for Vec<T> {
