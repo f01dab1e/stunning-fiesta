@@ -21,8 +21,8 @@ fn main() {
     let path = std::env::args().nth(1).unwrap();
     let text = std::fs::read_to_string(path).unwrap();
 
-    let mut tables = Tables::default();
-    let ast: Vec<Expr> = syntax::parse(&text, &mut tables).unwrap();
+    let tables = Tables::default();
+    let ast: Vec<Expr> = syntax::parse(&text, &tables).unwrap();
 
     let _type_checker = TypeChecker::new(&tables);
 

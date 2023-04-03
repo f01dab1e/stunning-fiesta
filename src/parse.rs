@@ -7,14 +7,19 @@ pub struct ParseError {
     pub message: String,
 }
 
+#[derive(Clone, Copy)]
 pub struct Input<'text, 'tables> {
     pub text: &'text str,
-    pub tables: &'tables mut Tables,
+    pub tables: &'tables Tables,
 }
 
 impl<'text, 'tables> Input<'text, 'tables> {
-    pub fn new(text: &'text str, tables: &'tables mut Tables) -> Self {
+    pub fn new(text: &'text str, tables: &'tables Tables) -> Self {
         Self { text, tables }
+    }
+
+    pub fn fork(self) -> Input<'text, 'tables> {
+        self
     }
 
     fn skip_trivia(&mut self) {
@@ -42,14 +47,14 @@ impl<'text, 'tables> Input<'text, 'tables> {
     }
 
     pub fn shift_if(&mut self, f: impl Fn(char) -> bool) -> Option<char> {
-        let ch = self.text.chars().next()?;
+        let mut snapshot = self.fork();
 
-        match ch {
-            ch if f(ch) => {
-                let _ = self.shift();
+        match snapshot.shift().ok() {
+            Some(ch) if f(ch) => {
+                *self = snapshot;
                 Some(ch)
             }
-            _ => None,
+            Some(_) | None => None,
         }
     }
 

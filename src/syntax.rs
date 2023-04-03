@@ -22,7 +22,7 @@ impl<T: Parse> Parse for Vec<T> {
     }
 }
 
-pub fn parse<T: Parse>(text: &str, tables: &mut Tables) -> PResult<T> {
+pub fn parse<T: Parse>(text: &str, tables: &Tables) -> PResult<T> {
     let mut input = Input::new(text, tables);
     T::parse(&mut input)
 }
