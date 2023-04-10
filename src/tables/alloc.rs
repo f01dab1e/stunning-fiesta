@@ -2,6 +2,7 @@ use std::marker::PhantomData;
 
 use super::Key;
 
+#[derive(Debug)]
 pub struct AllocTable<K, V> {
     values: Vec<V>,
     marker: PhantomData<K>,

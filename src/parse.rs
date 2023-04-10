@@ -7,7 +7,7 @@ pub struct ParseError {
     pub message: String,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Input<'text, 'tables> {
     pub text: &'text str,
     pub tables: &'tables Tables,
@@ -20,6 +20,32 @@ impl<'text, 'tables> Input<'text, 'tables> {
 
     pub fn fork(self) -> Input<'text, 'tables> {
         self
+    }
+
+    pub fn try_parse<T: Parse>(
+        &self,
+        f: impl FnOnce(&mut Self) -> PResult<T>,
+    ) -> PResult<(T, Self)> {
+        let mut snapshot = self.fork();
+        f(&mut snapshot).map(|t| (t, snapshot))
+    }
+
+    pub fn require_unambiguous<const N: usize, T: std::fmt::Debug>(
+        &mut self,
+        results: [PResult<(T, Self)>; N],
+        expected: &'static str,
+    ) -> PResult<T> {
+        let mut items: Vec<_> = results.into_iter().flatten().collect();
+
+        match &items[..] {
+            [] => Err(ParseError { message: format!("expected {expected}") }),
+            [_item] => {
+                let (t, input) = items.pop().unwrap();
+                *self = input;
+                Ok(t)
+            }
+            [..] => panic!("parsing ambiguity: {:#?}", items),
+        }
     }
 
     fn skip_trivia(&mut self) {

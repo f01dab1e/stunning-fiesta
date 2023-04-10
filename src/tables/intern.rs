@@ -3,6 +3,7 @@ use crate::collection::IndexSet;
 use std::hash::Hash;
 use std::marker::PhantomData;
 
+#[derive(Debug)]
 pub struct InternTable<K, V> {
     values: IndexSet<V>,
     marker: PhantomData<K>,

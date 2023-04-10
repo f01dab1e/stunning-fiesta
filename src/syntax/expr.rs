@@ -15,8 +15,12 @@ key![Expr];
 
 impl Debug for Expr {
     fn fmt(&self, tables: &Tables, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match tables.data(*self).kind {
+        match &tables.data(*self).kind {
             ExprKind::Integer(n) => write!(f, "{n}"),
+            ExprKind::List(entries) => {
+                let entries = entries.iter().map(|expr| expr.debug_with(tables));
+                f.debug_list().entries(entries).finish()
+            }
             _ => unreachable!(),
         }
     }
@@ -40,23 +44,37 @@ pub enum ExprKind {
 
 impl Parse for Expr {
     fn parse(input: &mut Input) -> PResult<Self> {
-        let mut number = input.accumulate(
-            |ch| ch.is_ascii_digit(),
-            |ch| ch.is_ascii_digit() || ch == '_',
-            "number",
-        )?;
+        input.require_unambiguous(
+            [
+                input.try_parse(|input| {
+                    let mut number = input.accumulate(
+                        |ch| ch.is_ascii_digit(),
+                        |ch| ch.is_ascii_digit() || ch == '_',
+                        "number",
+                    )?;
 
-        if number.contains('_') {
-            number = number.chars().filter(|&ch| ch != '_').collect();
-        }
+                    if number.contains('_') {
+                        number = number.chars().filter(|&ch| ch != '_').collect();
+                    }
 
-        match number.parse() {
-            Ok(t) => {
-                let expr = ExprData { kind: ExprKind::Integer(t), span: Span::default() };
-                Ok(input.tables.add(expr))
-            }
-            Err(error) => Err(ParseError { message: format!("parse error: {error}") }),
-        }
+                    match number.parse() {
+                        Ok(t) => {
+                            let expr =
+                                ExprData { kind: ExprKind::Integer(t), span: Span::default() };
+                            Ok(input.tables.add(expr))
+                        }
+                        Err(error) => Err(ParseError { message: format!("parse error: {error}") }),
+                    }
+                }),
+                input.try_parse(|input| {
+                    let list = input.parse()?;
+                    let kind = ExprKind::List(list);
+
+                    Ok(input.tables.add(ExprData { kind, span: Span::default() }))
+                }),
+            ],
+            "expression",
+        )
     }
 }
 
@@ -91,23 +109,30 @@ mod tests {
     fn it_works() {
         let mut table = Tables::default();
 
-        table.assert_ast::<Vec<Expr>>(
+        table.assert_ast::<Expr>(
+            "42",
+            expect![[r#"
+                42
+            "#]],
+        );
+
+        table.assert_ast::<Expr>(
             "[]",
             expect![[r#"
             []
         "#]],
         );
-        table.assert_ast::<Vec<Expr>>(
+        table.assert_ast::<Expr>(
             "-- Мы прячем золото в трастовые фонды\n[]",
             expect![[r#"
             []
         "#]],
         );
 
-        let error = parse::<Vec<Expr>>("[", &mut table).unwrap_err();
-        assert_eq!(error.message, "unexpected end of input");
+        let error = parse::<Expr>("[", &mut table).unwrap_err();
+        assert_eq!(error.message, "expected expression");
 
-        table.assert_ast::<Vec<Expr>>(
+        table.assert_ast::<Expr>(
             "[40]",
             expect![[r#"
             [
@@ -116,7 +141,7 @@ mod tests {
         "#]],
         );
 
-        table.assert_ast::<Vec<Expr>>(
+        table.assert_ast::<Expr>(
             "[40, 2, 42]",
             expect![[r#"
             [
@@ -127,7 +152,7 @@ mod tests {
         "#]],
         );
 
-        table.assert_ast::<Vec<Expr>>(
+        table.assert_ast::<Expr>(
             "[4_000_000]",
             expect![[r#"
             [

@@ -15,13 +15,13 @@ pub use debug::{Debug, DebugWith};
 pub use intern::InternTable;
 pub use key::{Key, RawKey};
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct RawTables {
     exprs: AllocTable<Expr, ExprData>,
     tys: InternTable<Ty, TyData>,
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Tables {
     raw: RefCell<RawTables>,
 }
