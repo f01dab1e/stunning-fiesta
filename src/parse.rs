@@ -7,14 +7,45 @@ pub struct ParseError {
     pub message: String,
 }
 
+#[derive(Clone, Copy, Debug)]
 pub struct Input<'text, 'tables> {
     pub text: &'text str,
-    pub tables: &'tables mut Tables,
+    pub tables: &'tables Tables,
 }
 
 impl<'text, 'tables> Input<'text, 'tables> {
-    pub fn new(text: &'text str, tables: &'tables mut Tables) -> Self {
+    pub fn new(text: &'text str, tables: &'tables Tables) -> Self {
         Self { text, tables }
+    }
+
+    pub fn fork(self) -> Input<'text, 'tables> {
+        self
+    }
+
+    pub fn try_parse<T: Parse>(
+        &self,
+        f: impl FnOnce(&mut Self) -> PResult<T>,
+    ) -> PResult<(T, Self)> {
+        let mut snapshot = self.fork();
+        f(&mut snapshot).map(|t| (t, snapshot))
+    }
+
+    pub fn require_unambiguous<const N: usize, T: std::fmt::Debug>(
+        &mut self,
+        results: [PResult<(T, Self)>; N],
+        expected: &'static str,
+    ) -> PResult<T> {
+        let mut items: Vec<_> = results.into_iter().flatten().collect();
+
+        match &items[..] {
+            [] => Err(ParseError { message: format!("expected {expected}") }),
+            [_item] => {
+                let (t, input) = items.pop().unwrap();
+                *self = input;
+                Ok(t)
+            }
+            [..] => panic!("parsing ambiguity: {:#?}", items),
+        }
     }
 
     fn skip_trivia(&mut self) {
@@ -42,14 +73,14 @@ impl<'text, 'tables> Input<'text, 'tables> {
     }
 
     pub fn shift_if(&mut self, f: impl Fn(char) -> bool) -> Option<char> {
-        let ch = self.text.chars().next()?;
+        let mut snapshot = self.fork();
 
-        match ch {
-            ch if f(ch) => {
-                let _ = self.shift();
+        match snapshot.shift().ok() {
+            Some(ch) if f(ch) => {
+                *self = snapshot;
                 Some(ch)
             }
-            _ => None,
+            Some(_) | None => None,
         }
     }
 

@@ -1,12 +1,10 @@
-mod debug;
 mod expr;
 
-pub use debug::Debug;
 pub use expr::{Expr, ExprData, ExprKind};
 
 use crate::{
     parse::{Input, PResult, Parse},
-    tables::Tables,
+    tables::{Debug, Tables},
 };
 
 impl<T: Debug> Debug for Vec<T> {
@@ -22,7 +20,7 @@ impl<T: Parse> Parse for Vec<T> {
     }
 }
 
-pub fn parse<T: Parse>(text: &str, tables: &mut Tables) -> PResult<T> {
+pub fn parse<T: Parse>(text: &str, tables: &Tables) -> PResult<T> {
     let mut input = Input::new(text, tables);
     T::parse(&mut input)
 }

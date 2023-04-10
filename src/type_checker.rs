@@ -8,7 +8,7 @@ use crate::{
 
 key![Ty];
 
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Debug)]
 pub enum TyData {
     Bool,
     Integer,
