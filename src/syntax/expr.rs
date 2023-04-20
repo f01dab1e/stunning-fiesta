@@ -2,7 +2,7 @@ use crate::{
     parse::{Input, PResult, Parse, ParseError},
     span::Span,
     syntax::Debug,
-    tables::{Key, RawKey, Tables},
+    tables::Tables,
 };
 
 #[derive(Debug)]

@@ -1,5 +1,7 @@
 #![allow(dead_code, unused_imports)]
 
+mod unify;
+
 use self::Mode::{CheckType, Synthesize};
 use crate::{
     syntax::{Expr, ExprData, ExprKind},
@@ -29,10 +31,14 @@ pub struct TypeChecker<'tables> {
 
 impl<'tables> TypeChecker<'tables> {
     pub fn new(tables: &'tables Tables) -> TypeChecker {
-        TypeChecker { tables, bool_ty: Ty::from_usize(0) }
+        TypeChecker { tables, bool_ty: tables.add(TyData::Bool) }
     }
 
     fn infer_variable(&self) -> Ty {
+        todo!()
+    }
+
+    fn equate(&self, _expr: Expr, _a: Ty, _b: Ty) {
         todo!()
     }
 
@@ -54,16 +60,14 @@ impl<'tables> TypeChecker<'tables> {
 
                 let ty = self.infer_variable();
                 self.check_expr(CheckType(ty), if_true);
-                if let Some(if_false) = if_false {
-                    self.check_expr(CheckType(ty), if_false);
+
+                match if_false {
+                    Some(if_false) => self.check_expr(CheckType(ty), if_false),
+                    None => todo!(),
                 }
 
                 ty
             }
         }
-    }
-
-    fn equate(&self, _expr: Expr, _a: Ty, _b: Ty) {
-        todo!()
     }
 }
