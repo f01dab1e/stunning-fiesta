@@ -6,9 +6,9 @@ macro_rules! key {
             raw: $crate::tables::RawKey,
         }
 
-        impl Key for $name {
+        impl $crate::tables::Key for $name {
             fn from_usize(key: usize) -> $name {
-                $name { raw: RawKey::from_usize(key) }
+                $name { raw: $crate::tables::RawKey::from_usize(key) }
             }
 
             fn as_usize(&self) -> usize {
