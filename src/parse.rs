@@ -1,8 +1,4 @@
-use crate::{
-    span::Span,
-    syntax::{Expr, ExprData, ExprKind},
-    tables::Tables,
-};
+use crate::tables::Tables;
 
 pub type PResult<T> = Result<T, ParseError>;
 
@@ -20,10 +16,6 @@ pub struct Input<'text, 'tables> {
 impl<'text, 'tables> Input<'text, 'tables> {
     pub fn new(text: &'text str, tables: &'tables Tables) -> Self {
         Self { text, tables }
-    }
-
-    pub fn mk_expr(&self, kind: ExprKind) -> Expr {
-        self.tables.add(ExprData { kind, span: Span::default() })
     }
 
     pub fn fork(self) -> Input<'text, 'tables> {
@@ -45,14 +37,14 @@ impl<'text, 'tables> Input<'text, 'tables> {
     ) -> PResult<T> {
         let mut items: Vec<_> = results.into_iter().flatten().collect();
 
-        match items.len() {
-            0 => Err(ParseError { message: format!("expected {expected}") }),
-            1 => {
+        match &items[..] {
+            [] => Err(ParseError { message: format!("expected {expected}") }),
+            [_item] => {
                 let (t, input) = items.pop().unwrap();
                 *self = input;
                 Ok(t)
             }
-            _ => panic!("parsing ambiguity: {:#?}", items),
+            [..] => panic!("parsing ambiguity: {:#?}", items),
         }
     }
 

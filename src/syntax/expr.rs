@@ -44,29 +44,38 @@ pub enum ExprKind {
 
 impl Parse for Expr {
     fn parse(input: &mut Input) -> PResult<Self> {
-        input.require_unambiguous([input.try_parse(number), input.try_parse(list)], "expression")
+        input.require_unambiguous(
+            [
+                input.try_parse(|input| {
+                    let mut number = input.accumulate(
+                        |ch| ch.is_ascii_digit(),
+                        |ch| ch.is_ascii_digit() || ch == '_',
+                        "number",
+                    )?;
+
+                    if number.contains('_') {
+                        number = number.chars().filter(|&ch| ch != '_').collect();
+                    }
+
+                    match number.parse() {
+                        Ok(t) => {
+                            let expr =
+                                ExprData { kind: ExprKind::Integer(t), span: Span::default() };
+                            Ok(input.tables.add(expr))
+                        }
+                        Err(error) => Err(ParseError { message: format!("parse error: {error}") }),
+                    }
+                }),
+                input.try_parse(|input| {
+                    let list = input.parse()?;
+                    let kind = ExprKind::List(list);
+
+                    Ok(input.tables.add(ExprData { kind, span: Span::default() }))
+                }),
+            ],
+            "expression",
+        )
     }
-}
-
-fn number(input: &mut Input) -> PResult<Expr> {
-    let mut number = input.accumulate(
-        |ch| ch.is_ascii_digit(),
-        |ch| ch.is_ascii_digit() || ch == '_',
-        "number",
-    )?;
-
-    if number.contains('_') {
-        number.retain(|ch| ch != '_');
-    }
-
-    match number.parse() {
-        Ok(t) => Ok(input.mk_expr(ExprKind::Integer(t))),
-        Err(error) => Err(ParseError { message: format!("parse error: {error}") }),
-    }
-}
-
-fn list(input: &mut Input) -> PResult<Expr> {
-    input.parse().map(|list| input.mk_expr(ExprKind::List(list)))
 }
 
 #[cfg(test)]
